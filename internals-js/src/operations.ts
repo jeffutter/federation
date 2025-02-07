@@ -56,7 +56,7 @@ import { assert, mapKeys, mapValues, MapWithCachedArrays, MultiMap, SetMultiMap 
 import { argumentsEquals, argumentsFromAST, isValidValue, valueToAST, valueToString } from "./values";
 import { v1 as uuidv1 } from 'uuid';
 
-export const DEFAULT_MIN_USAGES_TO_OPTIMIZE = 2;
+export const DEFAULT_MIN_USAGES_TO_OPTIMIZE = 1;
 
 function validate(condition: any, message: () => string, sourceAST?: ASTNode): asserts condition {
   if (!condition) {
@@ -121,7 +121,7 @@ abstract class AbstractOperationElement<T extends AbstractOperationElement<T>> e
   }
 }
 
-export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> extends AbstractOperationElement<Field<TArgs>> {
+export class Field<TArgs extends { [key: string]: any } = { [key: string]: any }> extends AbstractOperationElement<Field<TArgs>> {
   readonly kind = 'Field' as const;
 
   constructor(
@@ -181,7 +181,7 @@ export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> ex
     this.copyAttachmentsTo(newField);
     return newField;
   }
-  
+
   withUpdatedArguments(newArgs: TArgs): Field<TArgs> {
     const newField = new Field<TArgs>(
       this.definition,
@@ -244,7 +244,7 @@ export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> ex
       };
     });
   }
-  
+
   selects(
     definition: FieldDefinition<any>,
     assumeValid: boolean = false,
@@ -292,8 +292,8 @@ export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> ex
 
   validate(variableDefinitions: VariableDefinitions, validateContextualArgs: boolean) {
     validate(this.name === this.definition.name, () => `Field name "${this.name}" cannot select field "${this.definition.coordinate}: name mismatch"`);
-    
-    
+
+
     // We need to make sure the field has valid values for every non-optional argument.
     for (const argDef of this.definition.arguments()) {
       const appliedValue = this.argumentValue(argDef.name);
@@ -381,20 +381,20 @@ export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> ex
     if (this.name === typenameFieldName) {
       return parentType.typenameField()?.type;
     }
-    
+
     const returnType = this.canRebaseOn(parentType)
       ? parentType.field(this.name)?.type
       : undefined;
-      
+
     // If the field has an argument with fromContextDirective on it. We should not rebase it.
     const fromContextDirective = federationMetadata(parentType.schema())?.fromContextDirective();
     if (fromContextDirective && isFederationDirectiveDefinedInSchema(fromContextDirective)) {
       const fieldInParent = parentType.field(this.name);
       if (fieldInParent && fieldInParent.arguments()
-          .some(arg => arg.appliedDirectivesOf(fromContextDirective).length > 0 && (!this.args || this.args[arg.name] === undefined))
-        ) {
+        .some(arg => arg.appliedDirectivesOf(fromContextDirective).length > 0 && (!this.args || this.args[arg.name] === undefined))
+      ) {
         return undefined;
-      }  
+      }
     }
 
     return returnType;
@@ -448,7 +448,7 @@ export class Field<TArgs extends {[key: string]: any} = {[key: string]: any}> ex
  */
 function keyForDirective(
   directive: Directive<AbstractOperationElement<any>>,
-  directivesNeverEqualToThemselves: string[] = [ 'defer' ],
+  directivesNeverEqualToThemselves: string[] = ['defer'],
 ): string {
   if (directivesNeverEqualToThemselves.includes(directive.name)) {
     return uuidv1();
@@ -927,7 +927,7 @@ export class Operation extends DirectiveTargetElement<Operation> {
     readonly fragments?: NamedFragments,
     readonly name?: string,
     directives: readonly Directive<any>[] = []) {
-      super(schema, directives);
+    super(schema, directives);
   }
 
   // Returns a copy of this operation with the provided updated selection set.
@@ -947,7 +947,7 @@ export class Operation extends DirectiveTargetElement<Operation> {
       this.appliedDirectives,
     );
   }
-  
+
   private collectUndefinedVariablesFromFragments(fragments: NamedFragments): Variable[] {
     const collector = new VariableCollector();
     for (const namedFragment of fragments.definitions()) {
@@ -969,7 +969,7 @@ export class Operation extends DirectiveTargetElement<Operation> {
     if (this.selectionSet === newSelectionSet && newFragments === this.fragments) {
       return this;
     }
-    
+
     let newVariableDefinitions = this.variableDefinitions;
     if (allAvailableVariables && newFragments) {
       const undefinedVariables = this.collectUndefinedVariablesFromFragments(newFragments);
@@ -1053,7 +1053,7 @@ export class Operation extends DirectiveTargetElement<Operation> {
 
   generateQueryFragments(): Operation {
     const [minimizedSelectionSet, fragments] = this.selectionSet.minimizeSelectionSet();
-    
+
     return new Operation(
       this.schema(),
       this.rootKind,
@@ -1198,7 +1198,7 @@ export class NamedFragmentDefinition extends DirectiveTargetElement<NamedFragmen
     this.collectVariablesInAppliedDirectives(collector);
   }
 
-  toFragmentDefinitionNode() : FragmentDefinitionNode {
+  toFragmentDefinitionNode(): FragmentDefinitionNode {
     return {
       kind: Kind.FRAGMENT_DEFINITION,
       name: {
@@ -1512,7 +1512,7 @@ export class NamedFragments {
         // results may not be fully normalized, so we do it to be sure.
         return updatedSelectionSet === fragment.selectionSet
           ? fragment
-          : fragment.withUpdatedSelectionSet(updatedSelectionSet.normalize({ parentType: updatedSelectionSet.parentType}));
+          : fragment.withUpdatedSelectionSet(updatedSelectionSet.normalize({ parentType: updatedSelectionSet.parentType }));
       } else {
         return undefined;
       }
@@ -1525,7 +1525,7 @@ export class NamedFragments {
     }
   }
 
-  toFragmentDefinitionNodes() : FragmentDefinitionNode[] {
+  toFragmentDefinitionNodes(): FragmentDefinitionNode[] {
     return this.definitions().map(f => f.toFragmentDefinitionNode());
   }
 
@@ -1551,7 +1551,7 @@ class DeferNormalizer {
    *
    * @return - whether `selectionSet` has any non-labeled @defer.
    */
-  init(selectionSet: SelectionSet): { hasDefers: boolean, hasNonLabelledOrConditionalDefers: boolean }  {
+  init(selectionSet: SelectionSet): { hasDefers: boolean, hasNonLabelledOrConditionalDefers: boolean } {
     let hasNonLabelledOrConditionalDefers = false;
     let hasDefers = false;
     const stack: Selection[] = selectionSet.selections().concat();
@@ -1628,7 +1628,7 @@ export class SelectionSet {
   ): [SelectionSet, NamedFragments] {
     const minimizedSelectionSet = this.lazyMap((selection) => {
       if (selection.kind === 'FragmentSelection' && selection.element.typeCondition && selection.element.appliedDirectives.length === 0
-          && selection.selectionSet && selection.selectionSet.isWorthUsing() ) {
+        && selection.selectionSet && selection.selectionSet.isWorthUsing()) {
         // No proper hash code, so we use a unique enough number that's cheap to
         // compute and handle collisions as necessary.
         const mockHashCode = `on${selection.element.typeCondition}` + selection.selectionSet.selections().length;
@@ -1659,7 +1659,7 @@ export class SelectionSet {
         if (updatedEquivalentSelectionSetCandidates) {
           updatedEquivalentSelectionSetCandidates.push([selection.selectionSet, fragmentDefinition]);
         } else {
-            seenSelections.set(mockHashCode, [[selection.selectionSet, fragmentDefinition]]);
+          seenSelections.set(mockHashCode, [[selection.selectionSet, fragmentDefinition]]);
         }
 
         return new FragmentSpreadSelection(this.parentType, namedFragments, fragmentDefinition, []);
@@ -1715,7 +1715,7 @@ export class SelectionSet {
         const condition = selection.element.typeCondition;
         const header = condition ? [`... on ${condition}`] : [];
         for (const { path, field } of selection.selectionSet.fieldsInSet()) {
-          fields.push({ path: header.concat(path), field});
+          fields.push({ path: header.concat(path), field });
         }
       }
     }
@@ -1875,7 +1875,7 @@ export class SelectionSet {
    * any unecessary top-level inline fragments, possibly multiple layers of them, but we never recurse
    * inside the sub-selection of an selection that is not removed by the normalization.
    */
-  normalize({ parentType, recursive }: { parentType: CompositeType, recursive? : boolean }): SelectionSet {
+  normalize({ parentType, recursive }: { parentType: CompositeType, recursive?: boolean }): SelectionSet {
     return this.lazyMap((selection) => selection.normalize({ parentType, recursive }), { parentType });
   }
 
@@ -2209,12 +2209,12 @@ export class SelectionSet {
 
     if (indent === undefined) {
       const selectionsToString = this.selections().map(s => s.toString(expandFragments)).join(' ');
-      return includeExternalBrackets ?  '{ ' + selectionsToString  + ' }' : selectionsToString;
+      return includeExternalBrackets ? '{ ' + selectionsToString + ' }' : selectionsToString;
     } else {
       const selectionIndent = includeExternalBrackets ? indent + "  " : indent;
       const selectionsToString = this.selections().map(s => s.toString(expandFragments, selectionIndent)).join('\n');
       return includeExternalBrackets
-        ? '{\n' + selectionsToString  + '\n' + indent + '}'
+        ? '{\n' + selectionsToString + '\n' + indent + '}'
         : selectionsToString;
     }
   }
@@ -2326,13 +2326,13 @@ export class SelectionSetUpdates {
     return '{\n'
       + [...this.keyedUpdates.entries()].map(([k, updates]) => {
         const updStr = updates.map((upd) =>
-        upd instanceof AbstractSelection
-          ? upd.toString()
-          : `${upd.path} -> ${upd.selections}`
+          upd instanceof AbstractSelection
+            ? upd.toString()
+            : `${upd.path} -> ${upd.selections}`
         );
         return ` - ${k}: ${updStr}`;
       }).join('\n')
-      +'\n\}'
+      + '\n\}'
   }
 }
 
@@ -2482,7 +2482,7 @@ export class MutableSelectionSet<TMemoizedValue extends { [key: string]: any } =
     parentType: CompositeType,
     memoizer: (s: SelectionSet) => TMemoizedValue,
   ): MutableSelectionSet<TMemoizedValue> {
-    return new MutableSelectionSet( parentType, new SelectionSetUpdates(), memoizer);
+    return new MutableSelectionSet(parentType, new SelectionSetUpdates(), memoizer);
   }
 
 
@@ -2602,10 +2602,10 @@ abstract class AbstractSelection<TElement extends OperationElement, TIsLeaf exte
 
   abstract validate(variableDefinitions: VariableDefinitions, validateContextualArgs: boolean): void;
 
-  abstract rebaseOn(args: { parentType: CompositeType, fragments: NamedFragments | undefined, errorIfCannotRebase: boolean}): TOwnType | undefined;
+  abstract rebaseOn(args: { parentType: CompositeType, fragments: NamedFragments | undefined, errorIfCannotRebase: boolean }): TOwnType | undefined;
 
   rebaseOnOrError({ parentType, fragments }: { parentType: CompositeType, fragments: NamedFragments | undefined }): TOwnType {
-    return this.rebaseOn({ parentType, fragments, errorIfCannotRebase: true})!;
+    return this.rebaseOn({ parentType, fragments, errorIfCannotRebase: true })!;
   }
 
   get parentType(): CompositeType {
@@ -2655,7 +2655,7 @@ abstract class AbstractSelection<TElement extends OperationElement, TIsLeaf exte
 
   abstract expandFragments(updatedFragments: NamedFragments | undefined): TOwnType | readonly Selection[];
 
-  abstract normalize(args: { parentType: CompositeType, recursive? : boolean }): TOwnType | SelectionSet | undefined;
+  abstract normalize(args: { parentType: CompositeType, recursive?: boolean }): TOwnType | SelectionSet | undefined;
 
   isFragmentSpread(): boolean {
     return false;
@@ -2763,10 +2763,10 @@ abstract class AbstractSelection<TElement extends OperationElement, TIsLeaf exte
         }
         // If we're not going to replace the full thing, then same reasoning a below.
         if (candidate.appliedDirectives.length === 0) {
-          applyingFragments.push({ fragment: candidate, atType});
+          applyingFragments.push({ fragment: candidate, atType });
         }
-      // Note that if a fragment applies to only a subset of the subSelection, then we really only can use
-      // it if that fragment is defined _without_ directives.
+        // Note that if a fragment applies to only a subset of the subSelection, then we really only can use
+        // it if that fragment is defined _without_ directives.
       } else if (res === ContainsResult.STRICTLY_CONTAINED && candidate.appliedDirectives.length === 0) {
         applyingFragments.push({ fragment: candidate, atType });
       }
@@ -3027,10 +3027,10 @@ class FieldsConflictValidator {
       + [...this.byResponseName.entries()].map(([name, byFields]) => {
         const innerIndent = indent + '  ';
         return `${innerIndent}${name}: [\n`
-        + [...byFields.entries()]
-            .map(([field, next]) => `${innerIndent}  ${field.parentType}.${field}${next ? next.toString(innerIndent + '  '): ''}`)
+          + [...byFields.entries()]
+            .map(([field, next]) => `${innerIndent}  ${field.parentType}.${field}${next ? next.toString(innerIndent + '  ') : ''}`)
             .join('\n')
-        + `\n${innerIndent}]`;
+          + `\n${innerIndent}]`;
       }).join('\n')
       + `\n${indent}}`
   }
@@ -3061,8 +3061,8 @@ export class FieldSelection extends AbstractSelection<Field<any>, undefined, Fie
   // Is this a plain simple __typename without any directive or alias?
   isPlainTypenameField(): boolean {
     return this.element.definition.name === typenameFieldName
-        && this.element.appliedDirectives.length == 0
-        && !this.element.alias;
+      && this.element.appliedDirectives.length == 0
+      && !this.element.alias;
   }
 
   withAttachment(key: string, value: string): FieldSelection {
@@ -3227,7 +3227,7 @@ export class FieldSelection extends AbstractSelection<Field<any>, undefined, Fie
     return !!this.selectionSet?.hasDefer();
   }
 
-  normalize({ parentType, recursive }: { parentType: CompositeType, recursive? : boolean }): FieldSelection {
+  normalize({ parentType, recursive }: { parentType: CompositeType, recursive?: boolean }): FieldSelection {
     // This could be an interface field, and if we're normalizing on one of the implementation of that
     // interface, we want to make sure we use the field of the implementation, as it may in particular
     // have a more specific type which should propagate to the recursive call to normalize.
@@ -3339,7 +3339,7 @@ export abstract class FragmentSelection extends AbstractSelection<FragmentElemen
 
   abstract contains(that: Selection, options?: { ignoreMissingTypename?: boolean }): ContainsResult;
 
-  normalize({ parentType, recursive }: { parentType: CompositeType, recursive? : boolean }): FragmentSelection | SelectionSet | undefined {
+  normalize({ parentType, recursive }: { parentType: CompositeType, recursive?: boolean }): FragmentSelection | SelectionSet | undefined {
     const thisCondition = this.element.typeCondition;
 
     // This method assumes by contract that `parentType` runtimes intersects `this.parentType`'s, but `parentType`
@@ -3357,7 +3357,7 @@ export abstract class FragmentSelection extends AbstractSelection<FragmentElemen
     return this.normalizeKnowingItIntersects({ parentType, recursive });
   }
 
-  protected abstract normalizeKnowingItIntersects({ parentType, recursive }: { parentType: CompositeType, recursive? : boolean }): FragmentSelection | SelectionSet | undefined;
+  protected abstract normalizeKnowingItIntersects({ parentType, recursive }: { parentType: CompositeType, recursive?: boolean }): FragmentSelection | SelectionSet | undefined;
 }
 
 class InlineFragmentSelection extends FragmentSelection {
@@ -3476,7 +3476,7 @@ class InlineFragmentSelection extends FragmentSelection {
           return fragment.appliedDirectives.length === 0
             || (
               sameType(typeCondition, fragment.typeCondition)
-                && fragment.appliedDirectives.every((d) => this.element.appliedDirectives.some((s) => sameDirectiveApplication(d, s)))
+              && fragment.appliedDirectives.every((d) => this.element.appliedDirectives.some((s) => sameDirectiveApplication(d, s)))
             );
         },
       });
@@ -3538,7 +3538,7 @@ class InlineFragmentSelection extends FragmentSelection {
       : this.withUpdatedComponents(newElement, newSelection);
   }
 
-  protected normalizeKnowingItIntersects({ parentType, recursive }: { parentType: CompositeType, recursive? : boolean }): FragmentSelection | SelectionSet | undefined {
+  protected normalizeKnowingItIntersects({ parentType, recursive }: { parentType: CompositeType, recursive?: boolean }): FragmentSelection | SelectionSet | undefined {
     const thisCondition = this.element.typeCondition;
 
     // We know the condition is "valid", but it may not be useful. That said, if the condition has directives,
@@ -3890,7 +3890,7 @@ function selectionOfNode(
   const directives = directivesOfNodes(parentType.schema(), node.directives);
   switch (node.kind) {
     case Kind.FIELD:
-      const definition: FieldDefinition<any> | undefined  = fieldAccessor(parentType, node.name.value);
+      const definition: FieldDefinition<any> | undefined = fieldAccessor(parentType, node.name.value);
       validate(definition, () => `Cannot query field "${node.name.value}" on type "${parentType}".`, parentType.sourceAST);
       const type = baseType(definition.type!);
       const selectionSet = node.selectionSet
@@ -3927,7 +3927,7 @@ export function operationFromDocument(
     operationName?: string,
     validate?: boolean,
   }
-) : Operation {
+): Operation {
   let operation: OperationDefinitionNode | undefined;
   let operation_directives: Directive<any>[] | undefined; // the directives on `operation`
   const operationName = options?.operationName;
@@ -3974,7 +3974,7 @@ export function operationFromDocument(
     }
   });
   fragments.validate(variableDefinitions);
-  return operationFromAST({schema, operation, operation_directives, variableDefinitions, fragments, validateInput: options?.validate});
+  return operationFromAST({ schema, operation, operation_directives, variableDefinitions, fragments, validateInput: options?.validate });
 }
 
 function operationFromAST({
@@ -3984,14 +3984,14 @@ function operationFromAST({
   variableDefinitions,
   fragments,
   validateInput,
-}:{
+}: {
   schema: Schema,
   operation: OperationDefinitionNode,
   operation_directives?: Directive<any>[],
   variableDefinitions: VariableDefinitions,
   fragments: NamedFragments,
   validateInput?: boolean,
-}) : Operation {
+}): Operation {
   const rootType = schema.schemaDefinition.root(operation.operation);
   validate(rootType, () => `The schema has no "${operation.operation}" root type defined`);
   const fragmentsIfAny = fragments.isEmpty() ? undefined : fragments;
